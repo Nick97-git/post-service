@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Mail box</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</head>
+<body>
+<div><img class="image" id="img" height="150px" width="150px" style="border-radius: 50%; position: absolute; right: 5%"
+          th:src="${photo} == null ? @{img/empty-avatar.jpg} : @{'data:image/jpg;base64,'+${photo}}" alt="photo">
+    <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="img">
+        <li disabled class="mdl-menu__item">
+            <p style="color: black">
+                <b><span th:text="${user.fullName}"></span></b>
+                <br><span th:text="${user.login}"></span>
+            </p>
+        </li>
+        <li onclick="location.href='/user/settings'" id="settings-dialog-li" class="mdl-menu__item"
+            style="border-top: 1px solid darkgrey">
+            <div>
+                <i class="material-icons">settings</i>
+                <span style="margin-left: 5px">Settings</span>
+            </div>
+        </li>
+        <li onclick="location.href='/logout'" class="mdl-menu__item" style="border-top: 1px solid darkgrey">
+            <div>
+                <i class="material-icons">exit_to_app</i>
+                <span style="margin-left: 5px">Logout</span>
+            </div>
+        </li>
+    </ul>
+</div>
+<div style="position: fixed;
+    left: 50%;
+    margin-left: -100px;
+    width: 200px;
+    height: 100px;">
+    <form th:action="@{/mail-box/search}" th:object="${mailSearchDto}" method="post">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+            <label class="mdl-button mdl-js-button mdl-button--icon" for="searchText">
+                <i class="material-icons">search</i>
+            </label>
+            <div class="form-group">
+                <div class="mdl-textfield__expandable-holder">
+                    <input class="mdl-textfield__input" type="text" id="searchText" name="searchText">
+                    <label class="mdl-textfield__label" for="searchText">Search</label>
+                </div>
+            </div>
+            <div style="margin-left: 250px">
+                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+                        type="submit"
+                        style="color: white; background-color: limegreen">
+                    Search
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+<div style="position:fixed; margin-top: 100px; margin-left: 100px">
+    <button onclick="location.href='/mail'"
+            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+            style="color: white; background-color: blue">
+        Write mail
+    </button>
+    <button th:if="${#httpServletRequest.requestURI == '/mail-box/search'}" onclick="location.href='/mail-box'"
+            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+            style="color: white; background-color: coral">
+        Return original mail box
+    </button>
+</div>
+<form th:action="@{/mails}" th:object="${mailDeleteDto}" method="post">
+    <div class="form-group" style="position: fixed; margin-top: 150px; margin-left: 100px">
+        <script>
+            let table = document.querySelector('table');
+            let headerCheckbox = document.querySelector('#table-header');
+            let boxes = table.querySelectorAll('tbody .mdl-data-table__select');
+            let headerCheckHandler = function (event) {
+                if (event.target.checked) {
+                    for (let i = 0, length = boxes.length; i < length; i++) {
+                        boxes[i].MaterialCheckbox.check();
+                    }
+                } else {
+                    for (let i = 0, length = boxes.length; i < length; i++) {
+                        boxes[i].MaterialCheckbox.uncheck();
+                    }
+                }
+            };
+            headerCheckbox.addEventListener('change', headerCheckHandler);
+        </script>
+        <table class="mdl-data-table mdl-shadow--2dp">
+            <thead>
+            <tr>
+                <th>
+                    Удалить
+                </th>
+                <th class="mdl-data-table__cell--non-numeric" style="text-align: center">Message type</th>
+                <th class="mdl-data-table__cell--non-numeric" style="text-align: center">To/From</th>
+                <th class="mdl-data-table__cell--non-numeric" style="text-align: center">Subject</th>
+                <th class="mdl-data-table__cell--non-numeric" style="text-align: center">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${mails.empty}">
+                <td colspan="5" style="text-align: center"> No Available Mails</td>
+            </tr>
+            <tr th:if="${!mails.empty}" th:each="mail : ${mails}">
+                <td>
+                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect mdl-data-table__select"
+                           th:for="${mail.id}">
+                        <input type="checkbox" th:id="${mail.id}" class="mdl-checkbox__input"
+                               th:value="${mail.id}" name="ids"/>
+                    </label>
+                </td>
+                <td class="mdl-data-table__cell--non-numeric" style="text-align: center">
+                    <i class="material-icons" th:text="${mail.sender} == ${user.login} or ${mail.sender} == ${user.fullName}
+                ? 'arrow_upward' : 'arrow_downward'"></i>
+                </td>
+                <td style="text-align: center" >
+                    <a th:href="@{/mail/info/{mailId}(mailId=${mail.id})}"
+                       th:text="${mail.sender} == ${user.login} or ${mail.sender} == ${user.fullName}
+                ? ${mail.recipients} : ${mail.sender}"
+                       style="color: black; text-decoration: none"></a>
+                </td>
+                <td style="text-align: center">
+                    <a th:href="@{/mail/info/{mailId}(mailId=${mail.id})}" th:text="${mail.subject}"
+                       style="color: black; text-decoration: none"></a>
+                </td>
+                <td style="text-align: center">
+                    <a th:href="@{/mail/info/{mailId}(mailId=${mail.id})}" th:text="${mail.date}"
+                       style="color: black; text-decoration: none"></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <button id="delete-checked-mails" type="button"
+                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect show-modal"
+                style="color: white; background-color: red; margin-top: 10px">
+            Delete checked mails
+        </button>
+        <dialog class="mdl-dialog">
+            <div class="mdl-dialog__content">
+                <p style="color: black; alignment: center; font-weight: bolder;
+                font-family: 'Times New Roman'; font-size: larger">
+                    Do you really wanna delete these mails?
+                </p>
+            </div>
+            <div style="margin-bottom: 10px; margin-top: 10px">
+                <div class="form-group">
+                    <button type="submit"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+                            style="color: white; background-color: blue; margin-left: 20px">Agree
+                    </button>
+                    <button type="button"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect close"
+                            style="color: white; background-color: red; left: 20%">Disagree
+                    </button>
+                </div>
+            </div>
+        </dialog>
+        <script>
+            let dialog = document.querySelector('dialog');
+            let showModalButton = document.querySelector('.show-modal');
+            if (!dialog.showModal) {
+                dialogPolyfill.registerDialog(dialog);
+            }
+            showModalButton.addEventListener('click', function () {
+                dialog.showModal();
+            });
+            dialog.querySelector('.close').addEventListener('click', function () {
+                dialog.close();
+            });
+        </script>
+    </div>
+</form>
+</body>
+</html>
