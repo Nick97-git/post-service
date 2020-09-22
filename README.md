@@ -11,6 +11,7 @@ Development of post service
 <hr>
 Without being authenticated you can login. There are specific urls for users with APICALL role.
 Here is the list of such urls:
+
 1. POST /api/mails - search for letters. It accepts a string as input, which will be searched for in recipients, subjects and text of the user's emails. Returns up to 20 of the last mails found;
 2. POST /api/mail/{mailId} - answer for mail by its Id;
 3. POST /api/mail - send new mail;
@@ -47,7 +48,9 @@ Here is the list of such urls:
 # <a name = "test"></a>Test project
 For testing API you can download Postman or another such an analogue. There are test data that you can use.
 There’s one user already registered with USER and APICALL roles (login = "nick", password = "1234") and two users with USER role (login = "john", password = "1234" and login = "mary", password = "1234"). All new users automatically get USER role. You can change these test data in data.sql if you want.
-Also, user 'nick' has two created mails that you can manipulate with. You can change them in InjectDataController class.
+
+Also, there are two created mails that you can manipulate with. You can change them in InjectDataController class.
+
 All available endpoints you can see on http://localhost:8080/swagger-ui.html. For authorization, you must add a new header, where Authorization is key and Basic token is value, where token - value that you will get after encoding string login:password into Base64.
 
 # <a name="author"></a>Author
